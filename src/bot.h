@@ -16,10 +16,11 @@
 /* bot.c */
 void write_irc(char *mesg);
 void say_irc(char *channel, char *mesg);
+void wall(char *mesg);
 void configure_bot(void);
 void sigint_handler(int signal);
 void quit_irc(void);
-void join_channels(char **channels);
+void join_channels(void);
 void loop(void);
 
 /* helper.c */

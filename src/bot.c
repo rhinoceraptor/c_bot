@@ -6,6 +6,7 @@
 #include "bot.h"
 
 static int sock_fd;
+static char **channels;
 
 void write_irc(char *mesg)
 {
@@ -15,6 +16,16 @@ void write_irc(char *mesg)
 void say_irc(char *channel, char *mesg)
 {
   dprintf(sock_fd, "PRIVMSG %s :%s\r\n", channel, mesg);
+}
+
+void wall(char *mesg)
+{
+  int i = 0;
+  while (channels[i] != NULL)
+  {
+    dprintf(sock_fd, "PRIVMSG %s :%s\r\n", channels[i], mesg);
+    i++;
+  }
 }
 
 /* Set the bot's nick, realname, etc */
@@ -42,7 +53,7 @@ void quit_irc(void)
 }
 
 /* Iterate through the channels string array, and join each channel */
-void join_channels(char **channels)
+void join_channels(void)
 {
   int i = 0;
   while (channels[i] != NULL)
@@ -91,8 +102,8 @@ int main(void)
   configure_bot();
 
   /* Join channels */
-  char **channels = (char *[]) CHANNELS;
-  join_channels(channels);
+  channels = (char *[]) CHANNELS;
+  join_channels();
 
   printf("Connected to %s:%d\n", SERVER, PORT);
 
