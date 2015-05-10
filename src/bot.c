@@ -5,33 +5,85 @@
 
 #include "bot.h"
 
+static int sock_fd;
+
 void write_irc(char *mesg)
 {
+  dprintf(sock_fd, "%s\r\n", mesg);
 }
 
 void say_irc(char *channel, char *mesg)
 {
+  dprintf(sock_fd, "PRIVMSG %s :%s\r\n", channel, mesg);
 }
 
-/* Open the IRC socket to SERVER, PORT as defined in config.h */
-int open_irc_socket(const char *server, const int port)
+/* Set the bot's nick, realname, etc */
+void configure_bot(void)
 {
-  int sock_fd;
+  dprintf(sock_fd, "NICK %s\r\n", NICK);
+  dprintf(sock_fd, "USER %s %s %s : %s\r\n", NICK, HOST, SERVER, REALNAME);
+}
 
-  /* Open an IPv4, TCP socket */
-  if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+/* Handle SIGINT cleanly (Ctrl-C) */
+void sigint_handler(int signal)
+{
+  if (signal == SIGINT)
   {
-    dprintf(STDERR_FILENO, "Unable to open TCP socket!\n");
+    quit_irc();
+    exit(EXIT_SUCCESS);
+  }
+}
+
+/* Cleanly quit IRC */
+void quit_irc(void)
+{
+  dprintf(sock_fd, "QUIT :%s\r\n", QUITMESG);
+  close(sock_fd);
+}
+
+/* Iterate through the channels string array, and join each channel */
+void join_channels(char **channels)
+{
+  int i = 0;
+  while (channels[i] != NULL)
+  {
+    dprintf(sock_fd, "JOIN %s\r\n", channels[i]);
+    i++;
+  }
+}
+
+/* Main bot loop */
+void loop(void)
+{
+  long read_len;
+  char irc_buffer[MAX_IRC_LEN];
+
+  while ((read_len = read(sock_fd, irc_buffer, MAX_IRC_LEN - 1)))
+  {
+    printf("%s\n", irc_buffer);
+  }
+}
+
+int main(void)
+{
+  /* Set up SIGINT handler (Ctrl-C) */
+  if (signal(SIGINT, sigint_handler) == SIG_ERR)
+  {
     exit(EXIT_FAILURE);
   }
 
+  /* Connect to the IRC server */
+  sock_fd = open_irc_socket(SERVER, PORT);
 
-  return sock_fd;
-}
+  /* Set the bot's nick and real name */
+  configure_bot();
 
-int main(int argc, char *argv[])
-{
-  int sock_fd = open_irc_socket(SERVER, PORT);
+  /* Join channels */
+  char **channels = (char *[]) CHANNELS;
+  join_channels(channels);
 
+  printf("Connected to %s:%d\n", SERVER, PORT);
+
+  loop();
 }
 
