@@ -57,10 +57,22 @@ void loop(void)
 {
   long read_len;
   char irc_buffer[MAX_IRC_LEN];
+  char *line;
 
   while ((read_len = read(sock_fd, irc_buffer, MAX_IRC_LEN - 1)))
   {
-    printf("%s\n", irc_buffer);
+    /* Copy the buffer to a new string */
+    line = calloc(1, (unsigned long) read_len);
+    strncpy(line, irc_buffer, (unsigned long) read_len);
+
+    /* Check for PING */
+    if (strncmp(line, "PING", strlen("PING")) == 0)
+    {
+      write_irc((char *) "PONG");
+    }
+
+    /* Free the allocated string */
+    free(line);
   }
 }
 
