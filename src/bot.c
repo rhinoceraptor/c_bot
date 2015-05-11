@@ -8,6 +8,15 @@
 static int sock_fd;
 static char **channels;
 
+#define FREE(str) \
+{ \
+  if (str != NULL) \
+  { \
+    free(str); \
+    str = NULL; \
+  } \
+} \
+
 void write_irc(char *mesg)
 {
   dprintf(sock_fd, "%s\r\n", mesg);
@@ -41,15 +50,15 @@ void sigint_handler(int signal)
   if (signal == SIGINT)
   {
     quit_irc();
-    exit(EXIT_SUCCESS);
   }
 }
 
 /* Cleanly quit IRC */
-void quit_irc(void)
+__attribute__ ((noreturn)) void quit_irc(void)
 {
   dprintf(sock_fd, "QUIT :%s\r\n", QUITMESG);
   close(sock_fd);
+  exit(EXIT_SUCCESS);
 }
 
 /* Iterate through the channels string array, and join each channel */
@@ -68,8 +77,9 @@ void loop(void)
 {
   long read_len;
   char irc_buffer[MAX_IRC_LEN];
-  char *line;
+  char *line, *nick, *irc_cmd, *channel, *mesg;
 
+  /* Loop for as long as we are able to read from the socket */
   while ((read_len = read(sock_fd, irc_buffer, MAX_IRC_LEN - 1)))
   {
     /* Copy the buffer to a new string */
@@ -81,9 +91,28 @@ void loop(void)
     {
       write_irc((char *) "PONG");
     }
+    /* Else, check for a command */
+    else
+    {
+      nick = irc_cmd = channel = mesg = NULL;
+      parse_line(line, &nick, &irc_cmd, &channel, &mesg);
+
+      /* parse_line will allocate nick, irc_cmd, channel and mesg, if they
+       * remain NULL, then line did not contain all of the elements */
+      if (nick != NULL && irc_cmd != NULL && channel != NULL && mesg != NULL)
+      {
+        if (strncmp(irc_cmd, "PRIVMSG", strlen("PRIVMSG")) == 0)
+          printf("%s | %s\n", nick, mesg);
+
+        FREE(nick);
+        FREE(irc_cmd);
+        FREE(channel);
+        FREE(mesg);
+      }
+    }
 
     /* Free the allocated string */
-    free(line);
+    FREE(line);
   }
 }
 
@@ -92,7 +121,7 @@ int main(void)
   /* Set up SIGINT handler (Ctrl-C) */
   if (signal(SIGINT, sigint_handler) == SIG_ERR)
   {
-    exit(EXIT_FAILURE);
+    quit_irc();
   }
 
   /* Connect to the IRC server */

@@ -5,6 +5,7 @@
 #define HOST "127.0.0.1"
 #define SERVER "127.0.0.1"
 #define PORT 6667
+#define LEADER '!'
 
 /* Cast each channel with (char *), and make sure the NULL is on the end! */
 #define CHANNELS { (char *) "#asdf", (char *) "#bot", NULL }

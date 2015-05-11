@@ -19,11 +19,15 @@ void say_irc(char *channel, char *mesg);
 void wall(char *mesg);
 void configure_bot(void);
 void sigint_handler(int signal);
-void quit_irc(void);
+__attribute__ ((noreturn)) void quit_irc(void);
 void join_channels(void);
 void loop(void);
 
 /* helper.c */
+void parse_line(char *line, char **nick, char **irc_cmd, char **channel, char **mesg);
+char *parse_nick(char *line);
+char *parse_irc_command(char *line);
+char *parse_channel(char *line);
 int open_irc_socket(const char *server_ip, const int port);
 
 
