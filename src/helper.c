@@ -1,40 +1,36 @@
 /*
- * helper - contains low level network logic
+ * helper - various helper functions
  */
 
 #include "bot.h"
 
-/* Parse the user, irc command, channel, and message from the line*/
-void parse_line(char *line, char **nick, char **irc_cmd, char **channel, char **mesg)
-{
-  /* :jack!jack@yakko.cs.wmich.edu PRIVMSG #asdf :hello world! */
+// Parse the user, irc command, channel, and message from the line
+void parse_line(char *line, char **nick, char **irc_cmd, char **channel, char **mesg) {
+  // :jack!jack@yakko.cs.wmich.edu PRIVMSG #asdf :hello world!
 
-  /* Remove leading colon */
+  // Remove leading colon
   line++;
 
   char *line_ptr, *nick_ptr, *temp_nick, *temp_cmd, *temp_chan, *temp_mesg;
 
-  /* Split the message by spaces, and check for errors */
-  if ((temp_nick = strtok_r(line, " ", &line_ptr)) == NULL ||
-    (temp_nick = strtok_r(temp_nick, "!", &nick_ptr)) == NULL ||
-    (temp_cmd = strtok_r(NULL, " ", &line_ptr)) == NULL ||
-    (temp_chan = strtok_r(NULL, " ", &line_ptr)) == NULL ||
-    (temp_mesg = strtok_r(NULL, "\r\n", &line_ptr)) == NULL)
-  {
+  // Split the message by spaces, and check for errors
+  if ((temp_nick = strtok_r(line,      " ",    &line_ptr)) == NULL ||
+      (temp_nick = strtok_r(temp_nick, "!",    &nick_ptr)) == NULL ||
+      (temp_cmd  = strtok_r(NULL,      " ",    &line_ptr)) == NULL ||
+      (temp_chan = strtok_r(NULL,      " ",    &line_ptr)) == NULL ||
+      (temp_mesg = strtok_r(NULL,      "\r\n", &line_ptr)) == NULL) {
     printf("strtok failed!\n");
     return;
   }
-  /* If all strings were collected successfully, allocate strings for each */
-  else
-  {
+  // If all strings were collected successfully, allocate strings for each
+  else {
     temp_mesg++;
 
-    /* Allocate each string, and check for failure */
-    if ((*nick = calloc(1, strlen(temp_nick + 1))) == NULL ||
-      (*irc_cmd = calloc(1, strlen(temp_cmd + 1))) == NULL ||
-      (*channel = calloc(1, strlen(temp_chan + 1))) == NULL ||
-      (*mesg = calloc(1, strlen(temp_mesg + 1))) == NULL)
-    {
+    // Allocate each string, and check for failure
+    if ((*nick    = calloc(1, strlen(temp_nick + 1))) == NULL ||
+        (*irc_cmd = calloc(1, strlen(temp_cmd  + 1))) == NULL ||
+        (*channel = calloc(1, strlen(temp_chan + 1))) == NULL ||
+        (*mesg    = calloc(1, strlen(temp_mesg + 1))) == NULL) {
       quit_irc();
     }
 
@@ -45,15 +41,13 @@ void parse_line(char *line, char **nick, char **irc_cmd, char **channel, char **
   }
 }
 
-/* Open the IRC socket to SERVER, PORT as defined in config.h */
-int open_irc_socket(const char *server_ip, const int port)
-{
+// Open the IRC socket to SERVER, PORT as defined in config.h
+int open_irc_socket(const char *server_ip, const int port) {
   int sock_fd;
 
-  /* Open an IPv4, TCP socket */
-  if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-  {
-    dprintf(STDERR_FILENO, "Unable to open TCP socket!\n");
+  // Open an IPv4, TCP socket
+  if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+       dprintf(STDERR_FILENO, "Unable to open TCP socket!\n");
     exit(EXIT_FAILURE);
   }
 
@@ -62,16 +56,14 @@ int open_irc_socket(const char *server_ip, const int port)
     .sin_port = htons((uint16_t) port),
   };
 
-  /* Convert the server_ip address to binary form, into irc_addr.sin_addr */
-  if (inet_pton(AF_INET, server_ip, &irc_addr.sin_addr) == -1)
-  {
+  // Convert the server_ip address to binary form, into irc_addr.sin_addr
+  if (inet_pton(AF_INET, server_ip, &irc_addr.sin_addr) == -1) {
     dprintf(STDERR_FILENO, "Conversion of server IP to binary form failed!\n");
     exit(EXIT_FAILURE);
   }
 
-  /* Connect to the server */
-  if (connect(sock_fd, (struct sockaddr_in *) &irc_addr, sizeof(irc_addr)) == -1)
-  {
+  // Connect to the server
+  if (connect(sock_fd, (struct sockaddr_in *) &irc_addr, sizeof(irc_addr)) == -1) {
     dprintf(STDERR_FILENO, "Failed to connect to the IRC server!\n");
     exit(EXIT_FAILURE);
   }

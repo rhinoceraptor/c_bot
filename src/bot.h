@@ -10,10 +10,10 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-/* IRC lines are at most 512 bytes long, plus a null terminator makes 513 */
+// IRC lines are at most 512 bytes long, plus a null terminator makes 513
 #define MAX_IRC_LEN 513
 
-/* bot.c */
+// bot.c
 void write_irc(char *mesg);
 void say_irc(char *channel, char *mesg);
 void wall(char *mesg);
@@ -23,7 +23,7 @@ __attribute__ ((noreturn)) void quit_irc(void);
 void join_channels(void);
 void loop(void);
 
-/* helper.c */
+// helper.c
 void parse_line(char *line, char **nick, char **irc_cmd, char **channel, char **mesg);
 char *parse_nick(char *line);
 char *parse_irc_command(char *line);
