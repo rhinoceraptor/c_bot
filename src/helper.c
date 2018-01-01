@@ -42,29 +42,33 @@ void parse_line(char *line, char **nick, char **irc_cmd, char **channel, char **
 }
 
 // Open the IRC socket to SERVER, PORT as defined in config.h
-int open_irc_socket(const char *server_ip, const int port) {
+int open_socket(const char *server_name, const int port) {
   int sock_fd;
 
-  // Open an IPv4, TCP socket
-  if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-       dprintf(STDERR_FILENO, "Unable to open TCP socket!\n");
+  int domain = AF_INET6;
+  int type = SOCK_STREAM;
+  int protocol = 0;
+
+  // Create the socket
+  if ((sock_fd = socket(domain, type, protocol)) == -1) {
+    perror("Unable to create socket");
     exit(EXIT_FAILURE);
   }
 
-  struct sockaddr_in irc_addr = {
-    .sin_family = AF_INET,
+  struct sockaddr_in server_addr = {
+    .sin_family = PF_INET6,
     .sin_port = htons((uint16_t) port),
   };
 
-  // Convert the server_ip address to binary form, into irc_addr.sin_addr
-  if (inet_pton(AF_INET, server_ip, &irc_addr.sin_addr) == -1) {
-    dprintf(STDERR_FILENO, "Conversion of server IP to binary form failed!\n");
+  // Convert the server_name address to binary form, into server_addr.sin_addr
+  if (inet_pton(domain, server_name, &server_addr.sin_addr) == -1) {
+    perror("Converting server name failed");
     exit(EXIT_FAILURE);
   }
 
   // Connect to the server
-  if (connect(sock_fd, (struct sockaddr_in *) &irc_addr, sizeof(irc_addr)) == -1) {
-    dprintf(STDERR_FILENO, "Failed to connect to the IRC server!\n");
+  if (connect(sock_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1) {
+    perror("Connecting to irc server failed");
     exit(EXIT_FAILURE);
   }
 

@@ -15,7 +15,7 @@ static char **channels;
   } \
 } \
 
-void write_irc(char *mesg) {
+void write_irc(int socket, char *mesg) {
   dprintf(sock_fd, "%s\r\n", mesg);
 }
 
@@ -99,14 +99,16 @@ void loop(void) {
   }
 }
 
-int main(void) {
+int main() {
   // Set up SIGINT handler (Ctrl-C)
   if (signal(SIGINT, sigint_handler) == SIG_ERR) {
     quit_irc();
   }
 
+
+
   // Connect to the IRC server
-  sock_fd = open_irc_socket(SERVER, PORT);
+  sock_fd = open_socket(SERVER, PORT);
 
   // Set the bot's nick and real name
   configure_bot();
