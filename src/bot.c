@@ -105,13 +105,13 @@ int main(void) {
     quit_irc();
   }
 
-  // Connect to the IRC server */
+  // Connect to the IRC server
   sock_fd = open_irc_socket(SERVER, PORT);
 
-  // Set the bot's nick and real name */
+  // Set the bot's nick and real name
   configure_bot();
 
-  // Join channels */
+  // Join channels
   channels = (char *[]) CHANNELS;
   join_channels();
 
