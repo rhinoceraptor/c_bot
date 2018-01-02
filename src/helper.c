@@ -2,6 +2,7 @@
  * helper - various helper functions
  */
 
+#include <errno.h>
 #include "bot.h"
 
 // Parse the user, irc command, channel, and message from the line
