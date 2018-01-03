@@ -5,7 +5,6 @@
 
 #include "bot.h"
 
-//static int sock_fd;
 //static char **channels;
 //
 //#define FREE(str) { \
@@ -37,20 +36,22 @@
 //  dprintf(sock_fd, "USER %s %s %s : %s\r\n", NICK, HOST, SERVER, REALNAME);
 //}
 //
-//// Handle SIGINT cleanly (Ctrl-C)
-//void sigint_handler(int signal) {
-//  if (signal == SIGINT) {
-//    quit_irc();
-//  }
-//}
-//
-//// Cleanly quit IRC
-//__attribute__ ((noreturn)) void quit_irc(void) {
-//  dprintf(sock_fd, "QUIT :%s\r\n", QUITMESG);
-//  close(sock_fd);
-//  exit(EXIT_SUCCESS);
-//}
-//
+
+// Handle SIGINT cleanly (Ctrl-C)
+void sigint_handler (int signal, int *socket) {
+  if (signal == SIGINT) {
+    quit_irc(*socket);
+  }
+}
+
+// Cleanly quit IRC
+__attribute__ ((noreturn)) void quit_irc (int socket) {
+  printf("socket: %d\n", socket);
+  //dprintf(sock_fd, "QUIT :%s\r\n", QUITMESG);
+  //close(socket);
+  exit(EXIT_SUCCESS);
+}
+
 //// Iterate through the channels string array, and join each channel
 //void join_channels(void) {
 //  int i = 0;
@@ -99,76 +100,15 @@
 //  }
 //}
 
-bot_options *parse_options (int argc, char *argv[]) {
-  char *help =
-    "c_bot - simple IRC bot written in C\n"
-    "options:\n"
-    "  -n | --nickname\n"
-    "    Set the nickname for the bot\n"
-    "  -r | --realname\n"
-    "    Set the realname for the both\n"
-    "  -h | --hostname\n"
-    "    Set the hostname for the bot\n"
-    "  -s | --server\n"
-    "    Set the server to connect to\n"
-    "  -p | --port\n"
-    "    Set the server port to connect to\n"
-    "  -c | --channel\n"
-    "    Connect to the given channel\n"
-    "  -q | --quitmessage\n"
-    "    Set the quit message\n";
+int main (int argc, char *argv[]) {
+  int socket = 5;
 
-  int opt;
-
-  static struct option long_options[] = {
-    { "nickname", required_argument, 0, 'n' },
-    { "realname", required_argument, 0, 'r' },
-    { "hostname", required_argument, 0, 'h' },
-    { "server", required_argument, 0, 's' },
-    { "port", required_argument, 0, 'p' },
-    { "channel", required_argument, 0, 'c' },
-    { "quitmessage", required_argument, 0, 'q' },
-    { 0, 0, 0, 0}
-  };
-
-  const char *optstring = ":n:r:h:s:p:c:q:";
-  int option_index = 0;
-
-  while ((opt = getopt_long(argc, argv, optstring, long_options, option_index)) != -1) {
-    switch (opt) {
-      case 'n':
-        printf("nickname: %s\n", optarg);
-        break;
-      case 'r':
-        printf("realname: %s\n", optarg);
-        break;
-      case 'h':
-        printf("hostname: %s\n", optarg);
-        break;
-      case 's':
-        printf("server: %s\n", optarg);
-        break;
-      case 'p':
-        printf("port: %s\n", optarg);
-        break;
-      case 'c':
-        printf("channel: %s\n", optarg);
-        break;
-      case 'q':
-        printf("quitmessage: %s\n", optarg);
-        break;
-    }
-  }
-}
-
-int main(int argc, char *argv[]) {
   // Set up SIGINT handler (Ctrl-C)
-  //if (signal(SIGINT, sigint_handler) == SIG_ERR) {
-  //  exit(0);
-  //  //quit_irc();
-  //}
+  if (signal(SIGINT, (void (*)(int))sigint_handler) == SIG_ERR) {
+    quit_irc(socket);
+  }
 
-  bot_options *opts = parse_options(argc, argv);
+  bot_options_t *opts = parse_options(argc, argv);
 
 //
 //
