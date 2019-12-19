@@ -5,7 +5,7 @@
 #include "bot.h"
 
 // Parse the user, irc command, channel, and message from the line
-void parse_line(char *line, char **nick, char **irc_cmd, char **channel, char **mesg) {
+void parse_line(char *line, irc_message *message) {
   // :jack!jack@yakko.cs.wmich.edu PRIVMSG #asdf :hello world!
 
   // Remove leading colon
@@ -27,17 +27,18 @@ void parse_line(char *line, char **nick, char **irc_cmd, char **channel, char **
     temp_mesg++;
 
     // Allocate each string, and check for failure
-    if ((*nick    = calloc(1, strlen(temp_nick + 1))) == NULL ||
-        (*irc_cmd = calloc(1, strlen(temp_cmd  + 1))) == NULL ||
-        (*channel = calloc(1, strlen(temp_chan + 1))) == NULL ||
-        (*mesg    = calloc(1, strlen(temp_mesg + 1))) == NULL) {
+    if ((message->nick    = calloc(1, strlen(temp_nick + 1))) == NULL ||
+        (message->command = calloc(1, strlen(temp_cmd  + 1))) == NULL ||
+        (message->channel = calloc(1, strlen(temp_chan + 1))) == NULL ||
+        (message->message    = calloc(1, strlen(temp_mesg + 1))) == NULL) {
       quit_irc();
     }
 
-    strncpy(*nick, temp_nick, strlen(temp_nick));
-    strncpy(*irc_cmd, temp_cmd, strlen(temp_cmd));
-    strncpy(*channel, temp_chan, strlen(temp_chan));
-    strncpy(*mesg, temp_mesg, strlen(temp_mesg));
+    // Copy from the temp string pointers into the fields
+    strncpy(message->nick, temp_nick, strlen(temp_nick));
+    strncpy(message->command, temp_cmd, strlen(temp_cmd));
+    strncpy(message->channel, temp_chan, strlen(temp_chan));
+    strncpy(message->message, temp_mesg, strlen(temp_mesg));
   }
 }
 

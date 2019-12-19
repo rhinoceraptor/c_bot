@@ -7,7 +7,6 @@
 #define PORT 6667
 #define LEADER '!'
 
-// Cast each channel with (char *), and make sure the NULL is on the end!
-#define CHANNELS { (char *) "#asdf", (char *) "#bot", NULL }
+#define CHANNELS { "#asdf", "#bot", NULL }
 #define QUITMESG "I accidentally 93mb of kernel memory..."
 

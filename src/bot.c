@@ -45,7 +45,7 @@ void sigint_handler(int signal) {
 }
 
 // Cleanly quit IRC
-__attribute__ ((noreturn)) void quit_irc(void) {
+void quit_irc(void) {
   dprintf(sock_fd, "QUIT :%s\r\n", QUITMESG);
   close(sock_fd);
   exit(EXIT_SUCCESS);
@@ -64,38 +64,24 @@ void join_channels(void) {
 void loop(void) {
   long read_len;
   char irc_buffer[MAX_IRC_LEN];
-  char *line, *nick, *irc_cmd, *channel, *mesg;
+  irc_message *message = NULL;
+  char *line;
 
   // Loop for as long as we are able to read from the socket
   while ((read_len = read(sock_fd, irc_buffer, MAX_IRC_LEN - 1))) {
+    printf(">>>%s<<<\n\n", irc_buffer);
     // Copy the buffer to a new string
-    line = calloc(1, (unsigned long) read_len);
-    strncpy(line, irc_buffer, (unsigned long) read_len);
+    line = calloc(1, read_len);
+    strncpy(line, irc_buffer, read_len);
 
     // Check for PING
     if (strncmp(line, "PING", strlen("PING")) == 0) {
-      write_irc((char *) "PONG");
+      write_irc("PONG");
     }
     // Else, check for a command
     else {
-      nick = irc_cmd = channel = mesg = NULL;
-      parse_line(line, &nick, &irc_cmd, &channel, &mesg);
-
-      // parse_line will allocate nick, irc_cmd, channel and mesg, if they
-      // remain NULL, then line did not contain all of the elements
-      if (nick != NULL && irc_cmd != NULL && channel != NULL && mesg != NULL) {
-        if (strncmp(irc_cmd, "PRIVMSG", strlen("PRIVMSG")) == 0)
-          printf("%s | %s\n", nick, mesg);
-
-        FREE(nick);
-        FREE(irc_cmd);
-        FREE(channel);
-        FREE(mesg);
-      }
+      //parse_line(line, message);
     }
-
-    // Free the allocated string
-    FREE(line);
   }
 }
 
